@@ -1,3 +1,5 @@
+name: Android APK Deployment
+
 on:
   push:
     branches:
@@ -11,18 +13,20 @@ jobs:
     - name: Checkout code from repository
       uses: actions/checkout@v3
 
+    - name: Grant execute permission to Gradle Wrapper
+      run: sudo chmod +x gradlew  # Fix permission issue
+
     - name: Build APK using Gradle
-      run: |
-        ./gradlew assembleRelease
+      run: ./gradlew assembleRelease
 
     - name: Upload APK to S3
       uses: jakejarvis/s3-sync-action@v0.5.1
       with:
-        args: ''  # No additional arguments needed
+        args: ''
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        AWS_REGION: 'us-east-1'  # Replace with your AWS region
+        AWS_REGION: 'us-east-1'  # Update with your AWS region
         AWS_S3_BUCKET: 'apkbucket1'  # Your S3 bucket name
-        SOURCE_DIR: './app/build/outputs/apk/release/'  # Ensure this ends with a slash
-        DEST_DIR: 'android-apks/'  # Destination folder within the bucket
+        SOURCE_DIR: './app/build/outputs/apk/release/'  # APK output directory
+        DEST_DIR: 'android-apks/'  # Destination folder in S3
